@@ -18,6 +18,7 @@ Function Get-DynamicClass {
         $Namespace='root'
     )
         $list2.Clear()
+        $Label4.Text = "Loading WMI Classes"
         $a = Get-WmiObject -Namespace $Namespace -List | Select-Object -Property __class, qualifiers
 
         foreach ($x in $a)
@@ -25,11 +26,15 @@ Function Get-DynamicClass {
           foreach ($y in $x.qualifiers)
           {
           if ($y.name -match "^dynamic")
-               { $list2.Add( $x.__CLASS)}
+               { 
+                $list2.Add( $x.__CLASS)
+                $Label4.Text = "Loading "+ $x.__CLASS
+               }
 
           }
         }
-
+        $list2.sort()
+        $Label4.Text = ""
 }
  Function GenerateWMICode {
    Param (
@@ -101,6 +106,40 @@ $richTextBox1.Location = New-Object System.Drawing.Size(20,130)
 
 $Form.Controls.Add($richTextBox1)
 
+$OKButton = New-Object System.Windows.Forms.Button
+$OKButton.Location = New-Object System.Drawing.Size(130,230)
+
+$OKButton.Size = New-Object System.Drawing.Size(75,23)
+$OKButton.Text = "Quit"
+$OKButton.Add_Click({$Form.Close()})
+$Form.Controls.Add($OKButton)
+
+$InsertButton = New-Object System.Windows.Forms.Button
+
+$InsertButton.Location = New-Object System.Drawing.Size(20,230)
+$InsertButton.Size = New-Object System.Drawing.Size(100,23)
+$InsertButton.Text = "Insert Command"
+$InsertButton.Add_Click({$psise.CurrentFile.Editor.InsertText($richTextBox1.Text)})
+$Form.Controls.Add($InsertButton)
+
+$RunButton = New-Object System.Windows.Forms.Button
+
+$RunButton.Location = New-Object System.Drawing.Size(215,230)
+$RunButton.Size = New-Object System.Drawing.Size(75,23)
+$RunButton.Text = "Run"
+$RunButton.Add_Click({
+$Label4.Text = "Starting"
+Invoke-Expression -Command $richTextBox1.Text|Out-Host
+$Label4.Text = "Finish"
+})
+$Form.Controls.Add($RunButton)
+
+$Label4 = New-Object System.Windows.Forms.Label
+$Label4.AutoSize = $False
+$Label4.Size = New-Object System.Drawing.Size(200,23)
+$Label4.Location = New-Object System.Drawing.Size(20,260)
+$Form.Controls.Add($Label4)
+
 # -------------------------------------------------------------------------------
 
 #                             Change triggered function
@@ -154,29 +193,7 @@ $Icon = [system.drawing.icon]::ExtractAssociatedIcon($PSHOME + "\powershell.exe"
 
 $Form.Icon = $Icon
 
-$OKButton = New-Object System.Windows.Forms.Button
-$OKButton.Location = New-Object System.Drawing.Size(130,230)
 
-$OKButton.Size = New-Object System.Drawing.Size(75,23)
-$OKButton.Text = "Quit"
-$OKButton.Add_Click({$Form.Close()})
-$Form.Controls.Add($OKButton)
-
-$InsertButton = New-Object System.Windows.Forms.Button
-
-$InsertButton.Location = New-Object System.Drawing.Size(20,230)
-$InsertButton.Size = New-Object System.Drawing.Size(100,23)
-$InsertButton.Text = "Insert Command"
-$InsertButton.Add_Click({$psise.CurrentFile.Editor.InsertText($richTextBox1.Text)})
-$Form.Controls.Add($InsertButton)
-
-$RunButton = New-Object System.Windows.Forms.Button
-
-$RunButton.Location = New-Object System.Drawing.Size(215,230)
-$RunButton.Size = New-Object System.Drawing.Size(75,23)
-$RunButton.Text = "Run"
-$RunButton.Add_Click({Invoke-Expression -Command $richTextBox1.Text|Out-Host})
-$Form.Controls.Add($RunButton)
 $Form.StartPosition = "CenterScreen"
 $Form.ShowDialog()
 }
@@ -212,5 +229,5 @@ else
 }
 }
 
-$psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("WMI Auto Code", `
+$psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("WMI Auto Script", `
 {LaunchMain},"ALT+F5") | out-Null
