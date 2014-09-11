@@ -1,7 +1,7 @@
 PSHCreator
 ==========
 
-Powershell Add-On is to easily create and run PSH scripts in different scenarios for IT Pros throgh UI in Powershell ISE.
+This is a Powershell Add-On, which is to easily create and run PSH scripts in different scenarios for IT Pros throgh UI in Powershell ISE.
 
 Plan to include WMI autoscript, AZure query and deployment scenarios.
 
