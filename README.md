@@ -13,7 +13,7 @@ To use it:
 4. Restart ISE.
 5. You will see the new submenu when click Add-Ons. Run it, a friendly UI wizard will help you generate code automatically.
 
-The WMI autoscript beta is just completed.
+The WMI autoscript function is just completed.
 
 ![WMIAuto](https://cloud.githubusercontent.com/assets/8623897/4228398/c7143610-395a-11e4-8090-0192ec1e4481.png)
 
