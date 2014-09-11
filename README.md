@@ -15,4 +15,5 @@ To use it:
 
 The WMI autoscript beta is just completed.
 
+![WMIAuto](https://cloud.githubusercontent.com/assets/8623897/4228398/c7143610-395a-11e4-8090-0192ec1e4481.png)
 
