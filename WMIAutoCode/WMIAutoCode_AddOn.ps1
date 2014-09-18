@@ -7,11 +7,20 @@ Function Get-WmiNamespace {
         $Namespace='root'
     )
 
-    Get-WmiObject -Namespace $Namespace -Class __NAMESPACE |Sort-Object | ForEach-Object {
-            ($ns = '{0}\{1}' -f $_.__NAMESPACE,$_.Name )             
-            $list.Add($ns)
-            Get-WmiNamespace $ns
-    }
+    $wmiobjs = Get-WmiObject -Namespace $Namespace -Class __NAMESPACE |Sort-Object 
+    
+    $wmiobjs | ForEach-Object -begin {clear-host;$i=0;} `
+                              -process  {
+                                        ($ns = '{0}\{1}' -f $_.__NAMESPACE,$_.Name )  ;           
+                                        $list.Add($ns);
+                                        Get-WmiNamespace $ns;
+                                        $i=$i+1;
+                                                                             
+                                        write-progress -activity "PowerShell Code Generator: Loading WMI NameSpace" -status $ns -percentcomplete ($i/($wmiobjs.count+1)*100)
+                                        
+                                }`
+                              -end {}
+   
 }
 Function Get-DynamicClass {
     Param (
@@ -20,9 +29,11 @@ Function Get-DynamicClass {
         $list2.Clear()
         $Label4.Text = "Loading WMI Classes"
         $a = Get-WmiObject -Namespace $Namespace -List | Select-Object -Property __class, qualifiers
-
+        $i =0
         foreach ($x in $a)
         {
+          $i=$i+1
+          write-progress -activity "PowerShell Code Generator: Loading WMI Classes" -status $x.__class  -percentcomplete ($i/($a.count+1)*100)
           foreach ($y in $x.qualifiers)
           {
           if ($y.name -match "^dynamic")
@@ -34,6 +45,7 @@ Function Get-DynamicClass {
           }
         }
         $list2.sort()
+        Write-Progress "PowerShell Code Generator: Loading WMI Classes" "Complete" -Completed
         $Label4.Text = ""
 }
  Function GenerateWMICode {
@@ -61,7 +73,9 @@ $Label.AutoSize = $True
 $Label.Location = New-Object System.Drawing.Size(20,10)
 $Form.Controls.Add($Label)
 
+
 Get-WmiNamespace
+Write-Progress "PowerShell Code Generator: Loading WMI NameSpace" "Complete" -Completed
 
 $comboBox1 = New-Object System.Windows.Forms.ComboBox
 $comboBox1.Location = New-Object System.Drawing.Point(20, 30)
@@ -229,5 +243,5 @@ else
 }
 }
 
-$psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("WMI Auto Script", `
+$psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("WMI AutoScript", `
 {LaunchMain},"ALT+F5") | out-Null
