@@ -32,6 +32,7 @@ function ImportAzureModules
                    If (Test-Path $ModulePath) 
                    { 
                            Import-Module -Name $ModulePath
+                            Write-Host "`tSuccess"
                    }
                    Else
                    {
@@ -41,7 +42,7 @@ function ImportAzureModules
                    }
             }
 
-            Write-Host "`tSuccess"
+           
     }
     Catch [Exception]
     {
@@ -62,7 +63,6 @@ Function CheckAZurePSVersion
 
     If ($PSVersion -ge 0.8.8)
     {
-        Write-Host "`tSuccess"
         Write-Host "`tVersion" $PSVersion 
     }
     Else
