@@ -36,8 +36,8 @@ function ImportAzureModules
                    Else
                    {
                            #show module not found interaction and bail out
-                           Write-Host "[ERROR] - Azure PowerShell module not found. Exiting." -ForegroundColor Red
-                           Exit
+                           Write-Host "[ERROR] - Azure PowerShell module not found.." -ForegroundColor Red
+                            
                    }
             }
 
@@ -47,7 +47,7 @@ function ImportAzureModules
     {
             #show module not found interaction and bail out
             Write-Host "[ERROR] - PowerShell module not found. Exiting." -ForegroundColor Red
-            Exit
+          
     }
 }
 #Check the Azure PowerShell module version
@@ -67,7 +67,7 @@ Function CheckAZurePSVersion
     }
     Else
     {
-       Write-Host "[ERROR] - Azure PowerShell module must be version 0.8.8 or higher. Exiting." -ForegroundColor Red
+       Write-Host "[ERROR] - Azure PowerShell module must be version 0.8.8 or higher. " -ForegroundColor Red
     }
 }
 # Process Bar
