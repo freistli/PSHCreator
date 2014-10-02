@@ -1,4 +1,14 @@
+<# 
+ 
+.DESCRIPTION 
+    WMI AutoScript ISE AddOn
+ 
+.NOTES 
+    Author: Freist Li
+    Last Updated: 10/2/2014   
+#> 
 Add-Type -AssemblyName System.Windows.Forms 
+
 $list = New-Object 'System.Collections.Generic.List[string]'
 $list2 = New-Object 'System.Collections.Generic.List[string]'
 
@@ -57,12 +67,12 @@ Function Get-DynamicClass {
     $samplecode = "`n`$computer = `"LocalHost`" " + "`n`$namespace = `"$Namespace`" "  +  "`nGet-WmiObject -class  $DyanmicClass  -computername  `$computer  -namespace  `$namespace"
     return $samplecode         
 }
-
-Function LaunchForm{
+#WMI AutoScript LaunchForm
+Function WMIACLaunchForm{
 
 $Form = New-Object system.Windows.Forms.Form
 
-$Form.Text = "PowerShell Code Generator"
+$Form.Text = "WMI AutoScript in PowerShell"
 $Form.MinimizeBox = $False
 $Form.MaximizeBox = $False
 $Form.width = 410
@@ -86,6 +96,7 @@ foreach($wmispace in $list)
 }
 
 $Form.Controls.Add($comboBox1)
+$comboBox1.Text = "Please Select One"
 
 $Label2 = New-Object System.Windows.Forms.Label
 $Label2.Text = "WMI Dynamic Class"
@@ -132,7 +143,7 @@ $InsertButton = New-Object System.Windows.Forms.Button
 
 $InsertButton.Location = New-Object System.Drawing.Size(20,230)
 $InsertButton.Size = New-Object System.Drawing.Size(100,23)
-$InsertButton.Text = "Insert Command"
+$InsertButton.Text = "Insert Script"
 $InsertButton.Add_Click({$psise.CurrentFile.Editor.InsertText($richTextBox1.Text)})
 $Form.Controls.Add($InsertButton)
 
@@ -171,12 +182,21 @@ $ComboBox1_SelectedIndexChanged=
         $comboBox2.Items.add($wmiclass)
     }
    $comboBox2.Update()
+   if($comboBox2.Items.count -gt 0)
+   {
+   $comboBox2.SelectedIndex = 0
+   }
+   else
+   {
+   $comboBox2.Text = "None"
+   }
    $Label2.Text = "WMI Dynamic Classes count: "+ $list2.Count
 
 }
 $ComboBox2_SelectedIndexChanged=
 
 {
+
 $returncode = GenerateWMICode $comboBox1.Text $comboBox2.Text
 $richTextBox1.Clear()
   $richTextBox1.AppendText($returncode )
@@ -211,12 +231,14 @@ $Form.Icon = $Icon
 $Form.StartPosition = "CenterScreen"
 $Form.ShowDialog()
 }
-function Test-Admin {
+function Script:Test-Admin {
   $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
   $return = $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
   return $return
 }
-Function LaunchMain{
+
+#WMI AutoScript LaunchMain
+Function WMIACLaunchMain{
 if ((Test-Admin) -eq $false)  {
 
          
@@ -238,10 +260,11 @@ if ((Test-Admin) -eq $false)  {
 }
 else
 {
-     LaunchForm|Out-Null
+     WMIACLaunchForm|Out-Null
     
 }
+
 }
 
 $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("WMI AutoScript", `
-{LaunchMain},"ALT+F5") | out-Null
+{WMIACLaunchMain},"ALT+F6") | out-Null
