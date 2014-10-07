@@ -9,6 +9,10 @@
 #> 
 Add-Type -AssemblyName System.Windows.Forms 
 
+Function PSHCreator{
+Param (
+$Option = 'WAWSQuery'
+)
 #import the Azure PowerShell modules
 function ImportAzureModules
 {
@@ -63,7 +67,7 @@ Function CheckAZurePSVersion
 
     If ($PSVersion -ge 0.8.8)
     {
-        Write-Host "`tVersion" $PSVersion 
+         Write-Host "`tVersion" $PSVersion 
     }
     Else
     {
@@ -112,7 +116,15 @@ Function GetCertainWAWS
 { Param ($sitename)
     #Get Certain Azure WebSites
     Write-host "["$sitename"]" Status -ForegroundColor Cyan
-    Get-AzureWebsite $sitename 
+    $details = Get-AzureWebsite $sitename 
+    $details | format-list
+    Write-host "AppSettings"  -ForegroundColor Yellow
+    $details.AppSettings | format-list
+    Write-host "SiteProperties"  -ForegroundColor Yellow
+    $details.SiteProperties.Properties | Format-List
+    Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
+    $details.DefaultDocuments | Format-List
+    Write-host "`r`n"
 }
 
 
@@ -123,7 +135,15 @@ Function GetRunningWAWS
    Get-AzureWebsite | ForEach-Object {if ($_.State -match "^Running") `
                                         {
                                            Write-host "["$_.Name"]" Running Status -ForegroundColor Cyan
-                                              Get-AzureWebsite $_.Name
+                                           $details =  Get-AzureWebsite $_.Name 
+                                           $details | format-list
+                                           Write-host "AppSettings"  -ForegroundColor Yellow
+                                           $details.AppSettings | format-list
+                                           Write-host "SiteProperties"  -ForegroundColor Yellow
+                                           $details.SiteProperties.Properties | Format-List
+                                           Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
+                                           $details.DefaultDocuments | Format-List
+                                           Write-host "`r`n"
                                          }
                                    }
 }
@@ -135,7 +155,15 @@ Function GetStoppedWAWS
    Get-AzureWebsite | ForEach-Object {if ($_.State -match "^Stopped") `
                                         {
                                            Write-host "["$_.Name"]" Stopped Status -ForegroundColor Cyan
-                                              Get-AzureWebsite $_.Name
+                                           $details =  Get-AzureWebsite $_.Name 
+                                           $details | format-list
+                                           Write-host "AppSettings"  -ForegroundColor Yellow
+                                           $details.AppSettings | format-list
+                                           Write-host "SiteProperties"  -ForegroundColor Yellow
+                                           $details.SiteProperties.Properties | Format-List
+                                           Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
+                                           $details.DefaultDocuments | Format-List
+                                           Write-host "`r`n"
                                          }
                                    }
 }
@@ -147,7 +175,15 @@ Function GetWAWS
     #Get All Azure WebSites
     Get-AzureWebsite | ForEach-Object {  
                                               Write-host "["$_.Name"]" Status -ForegroundColor Cyan
-                                              Get-AzureWebsite $_.Name
+                                              $details =  Get-AzureWebsite $_.Name 
+                                               $details | format-list
+                                               Write-host "AppSettings"  -ForegroundColor Yellow
+                                               $details.AppSettings | format-list
+                                               Write-host "SiteProperties"  -ForegroundColor Yellow
+                                               $details.SiteProperties.Properties | Format-List
+                                               Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
+                                               $details.DefaultDocuments | Format-List
+                                               Write-host "`r`n"
                                            }
 }
 
@@ -210,8 +246,29 @@ Param (
     }
     return $samplecode  
 }
+#AutoScript WAWS Creation
+Function GenerateWAWSCreationCode {
+Param (
+        $Signin = 0,
+        $CheckVersion = 0,
+        $Sitename = ‘MyNewSite',       
+        $Location = ‘East US' 
+      )
 
-#AZure WAWS Autoscript Launch Form
+    if ($Signin -eq 1)
+    {
+            $samplecode = (Get-Command SignInAZureAccount).Definition
+    }
+    if ($CheckVersion -eq 1)
+    {
+            $samplecode = $samplecode + "`r`n" + (Get-Command CheckAZurePSVersion).Definition
+    }
+ 
+    $samplecode = $samplecode + "`r`n" +"New-AzureWebsite -Location '"+$Location+"' -Name '"+$Sitename+"'"            
+    
+    return $samplecode  
+}
+#AZure WAWS Autoscript Launch Form for Status Query
 Function AZureWAWSASLaunchForm{
 
         $Form = New-Object system.Windows.Forms.Form
@@ -366,20 +423,186 @@ Function AZureWAWSASLaunchForm{
         $Form.ShowDialog()
 
 }
+#AZure WAWS Creator AutoScript
+Function AZureCreateWAWSForm
+{
+   $Form = New-Object system.Windows.Forms.Form
 
+        $Form.Text = "AZure WAWS Creation AutoScript in PowerShell"
+        $Form.MinimizeBox = $False
+        $Form.MaximizeBox = $False
+        $Form.width = 450
+
+        $Labe1 = New-Object System.Windows.Forms.Label
+        $Labe1.AutoSize = $True
+        $Labe1.Text = "Not Known"
+        $Labe1.Location = New-Object System.Drawing.Size(140,15)
+        $Form.Controls.Add($Labe1)
+
+        $CurrentButton = New-Object System.Windows.Forms.Button
+        $CurrentButton.Text = "Get Current Account"
+        $CurrentButton.AutoSize = $True
+        $CurrentButton.Location = New-Object System.Drawing.Size(20,10)
+        $CurrentButton.Add_Click({ pbstart "Get CurrentAccount"
+                                   $Labe1.Text = GetCurrentAccount
+                                   pbstop})
+        $Form.Controls.Add($CurrentButton)
+
+        
+        $SigninButton = New-Object System.Windows.Forms.Button
+        $SigninButton.Location = New-Object System.Drawing.Size(20,40)
+        $SigninButton.Size = New-Object System.Drawing.Size(130,23)
+        $SigninButton.Text = "Sign In AZure Account"
+        $SigninButton.Add_Click({pbstart "Signin AZure Account"
+                                 SignInAZureAccount
+                                 pbstop})
+        $Form.Controls.Add($SigninButton)
+
+
+        $Labe2 = New-Object System.Windows.Forms.Label
+        $Labe2.Text = "Location"
+        $Labe2.AutoSize = $True
+        $Labe2.Location = New-Object System.Drawing.Size(20,70)
+        $Form.Controls.Add($Labe2)
+
+        $Locationlist = New-Object 'System.Collections.Generic.List[string]'
+
+        $comboBox1 = New-Object System.Windows.Forms.ComboBox
+        $comboBox1.Location = New-Object System.Drawing.Point(20, 90)
+        $comboBox1.Size = New-Object System.Drawing.Size(150, 310)
+        $Form.Controls.Add($comboBox1)
+        
+
+        $LocationButton = New-Object System.Windows.Forms.Button
+        $LocationButton.Location = New-Object System.Drawing.Size(200,90)
+        $LocationButton.AutoSize = $True
+        $LocationButton.Text = "Fill Location List"
+        $LocationButton.Add_Click({
+                                $comboBox1.Items.Clear()
+                                pbstart "Get Location List"
+                                $Locationlist=Get-AzureLocation |select Name
+                                pbstart "Adding to List"
+                                foreach($LocationName in $Locationlist)
+                                {
+                                  $comboBox1.Items.add($LocationName.Name)
+                                }
+                                pbstop
+                                
+                                if($comboBox1.items.count -gt 0)
+                                {
+                                   
+                                    $comboBox1.SelectedIndex = 0
+                                }                          
+                            })
+        $Form.Controls.Add($LocationButton)
+
+        $TextBox1 = New-Object System.Windows.Forms.TextBox
+        $TextBox1.Text = "New Site Name"
+        $TextBox1.Size = New-Object System.Drawing.Size(150, 20)
+        $TextBox1.Location = New-Object System.Drawing.Size(20,115)
+        $Form.Controls.Add($TextBox1)
+
+        $SignInFunctionCheckBox = New-Object System.Windows.Forms.CheckBox
+        $SignInFunctionCheckBox.Text = "Include SignIn Function"
+        $SignInFunctionCheckBox.AutoSize = $True
+        $SignInFunctionCheckBox.Location = New-Object System.Drawing.Size(20,140)
+        $Form.Controls.Add($SignInFunctionCheckBox)
+
+        $CheckVersionCheckBox = New-Object System.Windows.Forms.CheckBox
+        $CheckVersionCheckBox.Text = "Include Module Check"
+        $CheckVersionCheckBox.AutoSize = $True
+        $CheckVersionCheckBox.Location = New-Object System.Drawing.Size(20,160)
+        $Form.Controls.Add($CheckVersionCheckBox)
+
+        $CodeButton = New-Object System.Windows.Forms.Button
+        $CodeButton.Location = New-Object System.Drawing.Size(200,155)
+        $CodeButton.AutoSize = $True
+        $CodeButton.Text = "AutoScript"
+        $CodeButton.Add_Click({
+                                  $richTextBox1.Text=  GenerateWAWSCreationCode   $SignInFunctionCheckBox.Checked $CheckVersionCheckBox.Checked $TextBox1.Text $comboBox1.Text
+                            })
+        $Form.Controls.Add($CodeButton)
+
+        $richTextBox1 = New-Object System.Windows.Forms.RichTextBox
+        $richTextBox1.Text = ""
+        $richTextBox1.Width = 390
+        $richTextBox1.Height = 240
+        $richTextBox1.Location = New-Object System.Drawing.Size(20,185)
+
+        $Form.Controls.Add($richTextBox1)
+
+        $OKButton = New-Object System.Windows.Forms.Button
+        $OKButton.Location = New-Object System.Drawing.Size(130,430)
+
+        $OKButton.Size = New-Object System.Drawing.Size(75,23)
+        $OKButton.Text = "Quit"
+        $OKButton.Add_Click({$Form.Close()})
+        $Form.Controls.Add($OKButton)
+
+        $InsertButton = New-Object System.Windows.Forms.Button
+
+        $InsertButton.Location = New-Object System.Drawing.Size(20,430)
+        $InsertButton.Size = New-Object System.Drawing.Size(100,23)
+        $InsertButton.Text = "Insert Script"
+        $InsertButton.Add_Click({$psise.CurrentFile.Editor.InsertText($richTextBox1.Text)})
+        $Form.Controls.Add($InsertButton)
+
+        $RunButton = New-Object System.Windows.Forms.Button
+
+        $RunButton.Location = New-Object System.Drawing.Size(215,430)
+        $RunButton.Size = New-Object System.Drawing.Size(75,23)
+        $RunButton.Text = "Run"
+        $RunButton.Add_Click({
+        pbstart "Execute AutoScripted Code"
+        $Label4.Text = "Starting"
+        Invoke-Expression -Command $richTextBox1.Text|Out-Host
+        $Label4.Text = "Finish"
+        pbstop
+        })
+        $Form.Controls.Add($RunButton)
+
+        $Label4 = New-Object System.Windows.Forms.Label
+        $Label4.AutoSize = $False
+        $Label4.Size = New-Object System.Drawing.Size(200,23)
+        $Label4.Location = New-Object System.Drawing.Size(20,460)
+        $Label4.Text = "Status"
+        $Form.Controls.Add($Label4)
+
+        $Icon = [system.drawing.icon]::ExtractAssociatedIcon($PSHOME + "\powershell.exe")
+
+        $Form.Icon = $Icon
+
+        $Form.AutoSize = $True
+        $Form.StartPosition = "CenterScreen"
+        $Form.ShowDialog()
+}
 #AZure WAWS AutoScript Initialize
 Function AZureWAWSASInitialize
 {
   ImportAzureModules
   CheckAZurePSVersion
 }
-
+#AZure WAWS Status Query
 Function AZureWAWSASLaunchMain
 {
     AZureWAWSASInitialize
     AZureWAWSASLaunchForm |out-Null
 }
-$psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("AZure AutoScript", `
-{AZureWAWSASLaunchMain},"ALT+F5") | out-Null
+
+if($Option -match 'WAWSQuery')
+{
+AZureWAWSASLaunchMain
+}
+if($Option -match 'WAWSCreate')
+{
+AZureCreateWAWSForm
+}
+}
 
  
+
+ 
+$MenuNode = $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("AZure AutoScript", `
+$null,$null)  
+$MenuNode.Submenus.Add("WAWS Status Query", {PshCreator -Option 'WAWSQuery'},$null) | out-Null
+$MenuNode.Submenus.Add("WAWS Creation", {PshCreator -Option 'WAWSCreate'},$null) | out-Null

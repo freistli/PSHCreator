@@ -267,4 +267,4 @@ else
 }
 
 $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("WMI AutoScript", `
-{WMIACLaunchMain},"ALT+F6") | out-Null
+{WMIACLaunchMain},$null) | out-Null
