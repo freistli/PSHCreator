@@ -113,7 +113,8 @@ Function GetCurrentAccount
 
 #Get Certain Azure WebSites
 Function GetCertainWAWS
-{ Param ($sitename)
+{ Param ($sitename,
+         $CheckMetrics = 0)
     #Get Certain Azure WebSites
     Write-host "["$sitename"]" Status -ForegroundColor Cyan
     $details = Get-AzureWebsite $sitename 
@@ -125,6 +126,11 @@ Function GetCertainWAWS
     Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
     $details.DefaultDocuments | Format-List
     Write-host "`r`n"
+    if ($CheckMetrics -eq 1)
+    {
+      Get-AzureWebsiteMetric -Name $sitename  |ForEach-Object{$_.data
+        $_.data.Values|format-table}
+    }
 }
 
 
@@ -144,6 +150,11 @@ Function GetRunningWAWS
                                            Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
                                            $details.DefaultDocuments | Format-List
                                            Write-host "`r`n"
+                                           if ($CheckMetrics -eq 1)
+                                                {
+                                                  Get-AzureWebsiteMetric -Name $_.Name  |ForEach-Object{$_.data
+                                                    $_.data.Values|format-table}
+                                                }
                                          }
                                    }
 }
@@ -164,6 +175,11 @@ Function GetStoppedWAWS
                                            Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
                                            $details.DefaultDocuments | Format-List
                                            Write-host "`r`n"
+                                            if ($CheckMetrics -eq 1)
+                                                {
+                                                  Get-AzureWebsiteMetric -Name $_.Name |ForEach-Object{$_.data
+                                                    $_.data.Values|format-table}
+                                                }
                                          }
                                    }
 }
@@ -174,8 +190,8 @@ Function GetWAWS
 {
     #Get All Azure WebSites
     Get-AzureWebsite | ForEach-Object {  
-                                              Write-host "["$_.Name"]" Status -ForegroundColor Cyan
-                                              $details =  Get-AzureWebsite $_.Name 
+                                               Write-host "["$_.Name"]" Status -ForegroundColor Cyan
+                                               $details =  Get-AzureWebsite $_.Name 
                                                $details | format-list
                                                Write-host "AppSettings"  -ForegroundColor Yellow
                                                $details.AppSettings | format-list
@@ -184,6 +200,11 @@ Function GetWAWS
                                                Write-host "DefaultDocuments`r`n"  -ForegroundColor Yellow
                                                $details.DefaultDocuments | Format-List
                                                Write-host "`r`n"
+                                               if ($CheckMetrics -eq 1)
+                                                {
+                                                  Get-AzureWebsiteMetric -Name $_.Name |ForEach-Object{$_.data
+                                                    $_.data.Values|format-table}
+                                                }
                                            }
 }
 
@@ -216,6 +237,7 @@ Function GenerateWAWSQueryCode {
 Param (
         $Signin = 0,
         $CheckVersion = 0,
+        $CheckMetrics = 0,
         $Sitename = ‘All'        
       )
 
@@ -225,24 +247,37 @@ Param (
     }
     if ($CheckVersion -eq 1)
     {
+            
             $samplecode = $samplecode + "`r`n" + (Get-Command CheckAZurePSVersion).Definition
     }
     if ($Sitename -match 'All')
     {
+            if($CheckMetrics -eq 1)
+            {
+                $samplecode = $samplecode + "`r`n" + "`$CheckMetrics = 1"
+            }
             $samplecode = $samplecode + "`r`n" +  (Get-Command GetWAWS).Definition
     }
     elseif ($Sitename -match 'Running')
     {
+            if($CheckMetrics -eq 1)
+            {
+                $samplecode = $samplecode + "`r`n" + "`$CheckMetrics = 1"
+            }
             $samplecode = $samplecode + "`r`n" +  (Get-Command GetRunningWAWS).Definition
     }
     elseif ($Sitename -match 'Stopped')
     {
+            if($CheckMetrics -eq 1)
+            {
+                $samplecode = $samplecode + "`r`n" + "`$CheckMetrics = 1"
+            }
             $samplecode = $samplecode + "`r`n" +  (Get-Command GetStoppedWAWS).Definition
     }
     else
     {       $samplecode = $samplecode + "`r`n" +"Function GetCertainWAWS {"
             $samplecode = $samplecode + "`r`n" +  (Get-Command GetCertainWAWS).Definition +"}"
-            $samplecode = $samplecode + "`r`n" + "GetCertainWAWS "+$Sitename
+            $samplecode = $samplecode + "`r`n" + "GetCertainWAWS "+$Sitename+" `$"+ $CheckMetrics
     }
     return $samplecode  
 }
@@ -360,12 +395,19 @@ Function AZureWAWSASLaunchForm{
         $CheckVersionCheckBox.Location = New-Object System.Drawing.Size(20,150)
         $Form.Controls.Add($CheckVersionCheckBox)
 
+        
+        $CheckMetricsCheckBox = New-Object System.Windows.Forms.CheckBox
+        $CheckMetricsCheckBox.Text = "Include Metrics Check"
+        $CheckMetricsCheckBox.AutoSize = $True
+        $CheckMetricsCheckBox.Location = New-Object System.Drawing.Size(20,170)
+        $Form.Controls.Add($CheckMetricsCheckBox)
+
         $CodeButton = New-Object System.Windows.Forms.Button
         $CodeButton.Location = New-Object System.Drawing.Size(200,130)
         $CodeButton.AutoSize = $True
         $CodeButton.Text = "AutoScript"
         $CodeButton.Add_Click({
-                                  $richTextBox1.Text=  GenerateWAWSQueryCode   $SignInFunctionCheckBox.Checked $CheckVersionCheckBox.Checked $comboBox1.Text
+                                  $richTextBox1.Text=  GenerateWAWSQueryCode   $SignInFunctionCheckBox.Checked $CheckVersionCheckBox.Checked $CheckMetricsCheckBox.Checked $comboBox1.Text
                             })
         $Form.Controls.Add($CodeButton)
 
@@ -373,12 +415,12 @@ Function AZureWAWSASLaunchForm{
         $richTextBox1.Text = ""
         $richTextBox1.Width = 390
         $richTextBox1.Height = 240
-        $richTextBox1.Location = New-Object System.Drawing.Size(20,170)
+        $richTextBox1.Location = New-Object System.Drawing.Size(20,190)
 
         $Form.Controls.Add($richTextBox1)
 
         $OKButton = New-Object System.Windows.Forms.Button
-        $OKButton.Location = New-Object System.Drawing.Size(130,420)
+        $OKButton.Location = New-Object System.Drawing.Size(130,440)
 
         $OKButton.Size = New-Object System.Drawing.Size(75,23)
         $OKButton.Text = "Quit"
@@ -387,7 +429,7 @@ Function AZureWAWSASLaunchForm{
 
         $InsertButton = New-Object System.Windows.Forms.Button
 
-        $InsertButton.Location = New-Object System.Drawing.Size(20,420)
+        $InsertButton.Location = New-Object System.Drawing.Size(20,440)
         $InsertButton.Size = New-Object System.Drawing.Size(100,23)
         $InsertButton.Text = "Insert Script"
         $InsertButton.Add_Click({$psise.CurrentFile.Editor.InsertText($richTextBox1.Text)})
@@ -395,7 +437,7 @@ Function AZureWAWSASLaunchForm{
 
         $RunButton = New-Object System.Windows.Forms.Button
 
-        $RunButton.Location = New-Object System.Drawing.Size(215,420)
+        $RunButton.Location = New-Object System.Drawing.Size(215,440)
         $RunButton.Size = New-Object System.Drawing.Size(75,23)
         $RunButton.Text = "Run"
         $RunButton.Add_Click({
@@ -410,7 +452,7 @@ Function AZureWAWSASLaunchForm{
         $Label4 = New-Object System.Windows.Forms.Label
         $Label4.AutoSize = $False
         $Label4.Size = New-Object System.Drawing.Size(200,23)
-        $Label4.Location = New-Object System.Drawing.Size(20,450)
+        $Label4.Location = New-Object System.Drawing.Size(20,470)
         $Label4.Text = "Status"
         $Form.Controls.Add($Label4)
 
