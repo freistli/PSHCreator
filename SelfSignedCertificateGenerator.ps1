@@ -193,20 +193,20 @@ function Script:Test-Admin {
 if ((Test-Admin) -eq $false)  {
 
          
-    $oReturn=[System.Windows.Forms.MessageBox]::Show("Cert AutoCode needs to start Powershell ISE in Admin permission","Info",[System.Windows.Forms.MessageBoxButtons]::OKCancel)  
+    $oReturn=[System.Windows.Forms.MessageBox]::Show("Cert AutoCode Execution prefer to start Powershell in Admin permission","Info",[System.Windows.Forms.MessageBoxButtons]::OKCancel)  
  
     switch ($oReturn){ 
  
     "OK" { 
         write-host "You pressed OK" 
-        Start-Process powershell_ise.exe -Verb RunAs
+        Start-Process powershell.exe -Verb RunAs
     }  
     "Cancel" { 
-        write-host "You pressed Cancel" 
+        write-host "You pressed Cancel, it will run without Admin Permission" 
+        SelfCertLaunchForm
     }  
 } 
-
-        
+       
     
 }
 else
