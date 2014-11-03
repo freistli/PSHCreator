@@ -88,7 +88,12 @@ Function PBStop{
     write-progress -activity "PowerShell AutoScript" -status "Completed" -PercentComplete 100
     write-progress -activity "PowerShell AutoScript" -status "Completed" -Completed
 }
-
+#Check if Admin Permission
+function Script:Test-Admin {
+  $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+  $return = $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+  return $return
+}
  #Form UI
  #************************************************************************
  Function SelfCertLaunchForm{
@@ -184,7 +189,32 @@ Function PBStop{
         $Form.ShowDialog()
   }
 
- SelfCertLaunchForm
+
+if ((Test-Admin) -eq $false)  {
+
+         
+    $oReturn=[System.Windows.Forms.MessageBox]::Show("Cert AutoCode needs to start Powershell ISE in Admin permission","Info",[System.Windows.Forms.MessageBoxButtons]::OKCancel)  
+ 
+    switch ($oReturn){ 
+ 
+    "OK" { 
+        write-host "You pressed OK" 
+        Start-Process powershell_ise.exe -Verb RunAs
+    }  
+    "Cancel" { 
+        write-host "You pressed Cancel" 
+    }  
+} 
+
+        
+    
+}
+else
+{
+      SelfCertLaunchForm
+    
+}
+
 
 #GenerateSelfSignedCert www.mytest1.com YourSecPassword c:\temp\mytest1.pfx
 
